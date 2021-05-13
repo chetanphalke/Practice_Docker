@@ -7,7 +7,7 @@ services:
             - 3306:3306
         networks:
             - spring-cloud-network
-	environment:
+        environment:
             - MYSQL_ROOT_PASSWORD=root
             - MYSQL_DATABASE=inbox_schema
 
@@ -18,7 +18,7 @@ services:
             - 8081:8081
         networks:
             - spring-cloud-network
-	environment:
+        environment:
             - RDS_HOSTNAME=database
             - RDS_PORT=3306
             - RDS_DB_NAME=inbox_schema
