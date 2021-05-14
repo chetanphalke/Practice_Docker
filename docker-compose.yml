@@ -1,19 +1,19 @@
-version: '1'
+version: '3.3'
 services:
     database:
-        image: mysql:latest
-        container_name: mysql_container
+        image: mysql:8
+        container_name: mysql-container
         ports:
             - 3306:3306
         networks:
             - spring-cloud-network
         environment:
             - MYSQL_ROOT_PASSWORD=root
-            - MYSQL_DATABASE=inbox_schema
+            - MYSQL_DATABASE=inbox_schema, admin_schema
 
     inbox-server:
         image: inbox-server:latest
-        container_name: mysql_container
+        container_name: inbox-container
         ports:
             - 8081:8081
         networks:
@@ -22,19 +22,17 @@ services:
             - RDS_HOSTNAME=database
             - RDS_PORT=3306
             - RDS_DB_NAME=inbox_schema
-            - SERVICEREGISTRY_HOSTNAME=service_registry_container
+            - SERVICEREGISTRY_HOSTNAME=service-registry-container
             - SERVICEREGISTRY_PORT=8761
-            - CONFIG_HOSTNAME=config_server_container
+            - CONFIG_HOSTNAME=config-server-container
             - CONFIG_PORT=8888
         depends_on:
-            - database
-            - config-server
-            - service-registry-server
+            - auth-server
 
 
     config-server:
         image: config-server:latest
-        container_name: config_server_container
+        container_name: config-server-container
         ports:
             - 8888:8888
         networks:
@@ -43,11 +41,71 @@ services:
 
     service-registry-server:
         image: service-registry:latest
-        container_name: service_registry_container
+        container_name: service-registry-container
         ports:
             - 8761:8761
         networks:
             - spring-cloud-network
+
+
+    auth-server:
+        image: auth-service:latest
+        container_name: auth-server-container
+        ports:
+            - 8080:8080
+        networks:
+            - spring-cloud-network
+        environment:
+            - RDS_HOSTNAME=database
+            - RDS_PORT=3306
+            - RDS_DB_NAME=inbox_schema
+            - SERVICEREGISTRY_HOSTNAME=service-registry-container
+            - SERVICEREGISTRY_PORT=8761
+        depends_on:
+            - database
+            - service-registry-server
+
+
+
+    admin-server:
+        image: admin-service:latest
+        container_name: admin-service-container
+        ports:
+            - 8085:8085
+        networks:
+            - spring-cloud-network
+        environment:
+            - RDS_HOSTNAME=database
+            - RDS_PORT=3306
+            - RDS_DB_NAME=admin_schema
+            - SERVICEREGISTRY_HOSTNAME=service-registry-container
+            - SERVICEREGISTRY_PORT=8761
+            - CONFIG_HOSTNAME=config-server-container
+            - CONFIG_PORT=8888
+            - AUTH_HOSTNAME=auth-server-container
+            - AUTH_PORT=8080
+        depends_on:
+            - auth-server
+
+
+
+    patient-server:
+        image: patient-service:latest
+        container_name: patient-service-container
+        ports:
+            - 8082:8082
+        networks:
+            - spring-cloud-network
+        environment:
+            - RDS_HOSTNAME=database
+            - RDS_PORT=3306
+            - RDS_DB_NAME=patient_schema
+            - SERVICEREGISTRY_HOSTNAME=service-registry-container
+            - SERVICEREGISTRY_PORT=8761
+            - CONFIG_HOSTNAME=config-server-container
+            - CONFIG_PORT=8888
+        depends_on:
+            - admin-server
 
 networks:
     spring-cloud-network:
