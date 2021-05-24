@@ -20,6 +20,8 @@ services:
     database:
         image: mysql:8
         container_name: mysql-container
+        volumes:
+          - mysql-volume:/var/lib/mysql
         ports:
             - 3306:3306
         networks:
@@ -90,10 +92,13 @@ services:
             - SERVICEREGISTRY_PORT=8761
             - CONFIG_HOSTNAME=config-server-container
             - CONFIG_PORT=8888
+            - AUTH_HOSTNAME=auth-server-container
+            - AUTH_PORT=8080
         depends_on:
             - database
             - service-registry-server
             - config-server
+            - auth-server
 
     inbox-server:
         image: inbox-server:latest
@@ -184,6 +189,8 @@ services:
         networks:
             - spring-cloud-network
 
+volumes:
+   mysql-volume:
 
 networks:
     spring-cloud-network:
