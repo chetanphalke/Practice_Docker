@@ -78,7 +78,7 @@ services:
 
 
     patient-server:
-        image: patient-service:latest
+        image: paitientwithotfaign:latest
         container_name: patient-service-container
         ports:
             - 8082:8082
